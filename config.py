@@ -1,4 +1,4 @@
 config = {
-   "username": 'slask',
-   "icon": ":poop:",
+   "username": 'debtbot',
+   "icon": ":money_with_wings:",
 }
