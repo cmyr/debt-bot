@@ -12,7 +12,7 @@ app = Flask(__name__)
 curdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(curdir)
 
-import slask_utils
+import debt_utils
 from config import config
 
 def handle_message(message):
