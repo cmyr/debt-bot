@@ -37,30 +37,34 @@ def parse_debt_message(message, user):
     # else:
         # print(message)
 
-def status_for_user(user):
+def transactions(user_id):
+    messages = get_channel_history(DEBT_CHANNEL_ID)
+    messages = [m for m in messages if re.search(user_id, m.get('text', ''))]
+    return messages
+
+def status_for_user(user_id):
     user_list = users()
     balances = defaultdict(int)
-    messages = get_channel_history(DEBT_CHANNEL_ID)
-    messages = [m for m in messages if re.search(user, m.get('text', ''))]
+    messages = transactions(user_id)
     for m in messages:
-        transaction = parse_debt_message(m.get('text'), user)
+        transaction = parse_debt_message(m.get('text'), user_id)
         if transaction:
             balances[transaction[0]] += transaction[1]
     
     responses = list()
-    for user_id, value in balances.items():
+    for other_user_id, value in balances.items():
         if value > 0:
-            responses.append("%s owes you $%d" % (user_list[user_id], abs(value)))
+            responses.append("%s owes you $%d" % (user_list[other_user_id], abs(value)))
         else:
-            responses.append("you owe %s $%d" % (user_list[user_id], abs(value)))
+            responses.append("you owe %s $%d" % (user_list[other_user_id], abs(value)))
     if len(responses):
         return "\n".join(responses)
     else:
-        return "%s, you are ominously debt free" % user_list.get(user, user)
+        return "%s (%s), you are ominously debt free" % (user_list.get(user_id, "<$NAME NOT FOUND$>"), user_id)
 
         
 def main():
-    print(status_for_user("U024H5KK7"))
+    print(status_for_user("U02G8SVCB"))
 
 if __name__ == "__main__":
     main()
