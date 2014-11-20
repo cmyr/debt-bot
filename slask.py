@@ -16,7 +16,7 @@ import debt_utils
 from config import config
 
 def handle_message(message):
-    if re.findall(r"^status", text, flags=re.IGNORECASE):
+    if re.findall(r"^status", message.get("text", ""), flags=re.IGNORECASE):
         return slack_utils.status_for_user(message.get("user_name"))
     return "nothing found :("
 
