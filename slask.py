@@ -17,7 +17,11 @@ from config import config
 
 def handle_message(message):
     if re.findall(r"^status", message.get("text", ""), flags=re.IGNORECASE):
-        return debt_utils.status_for_user(message.get("user_name"))
+        return debt_utils.status_for_user(message.get("user_id"))
+    if re.search(r"^transactions", message.get("text", ""), flags=re.IGNORECASE)
+        transactions = debt_utils.transactions(message.get("user_id"))
+        if len(transactions):
+            return "\n".join([m.get("text", "") for m in transactions])
     return "nothing found :("
 
 @app.route("/", methods=['POST'])
