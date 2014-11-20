@@ -12,10 +12,13 @@ app = Flask(__name__)
 curdir = os.path.dirname(os.path.abspath(__file__))
 os.chdir(curdir)
 
+import slask_utils
 from config import config
-from token import slack_token
 
-slack = Slack(token)
+def handle_message(message):
+    if match = re.findall(r"^status", text, flags=re.IGNORECASE):
+        return slack_utils.status_for_user(message.get("user_name"))
+    return ""
 
 @app.route("/", methods=['POST'])
 def main():
@@ -27,7 +30,8 @@ def main():
     if username == msguser or msguser.lower() == "slackbot":
         return ""
 
-    text = "hi colin!"
+    text = handle_message(request.form)
+
     response = {
         "text": text,
         "username": username,
