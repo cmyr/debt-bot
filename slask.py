@@ -18,7 +18,7 @@ from config import config
 def handle_message(message):
     if match = re.findall(r"^status", text, flags=re.IGNORECASE):
         return slack_utils.status_for_user(message.get("user_name"))
-    return ""
+    return "nothing found :("
 
 @app.route("/", methods=['POST'])
 def main():
