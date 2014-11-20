@@ -31,7 +31,7 @@ def main():
         return ""
 
     text = handle_message(request.form)
-    if text = "":
+    if text == "":
         text = "i don't have anything 2 say!!"
     response = {
         "text": text,
