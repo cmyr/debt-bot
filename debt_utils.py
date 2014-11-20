@@ -53,14 +53,14 @@ def status_for_user(user):
             responses.append("%s owes you $%d" % (user_list[user_id], abs(value)))
         else:
             responses.append("you owe %s $%d" % (user_list[user_id], abs(value)))
-    return "\n".join(responses)
+    if len(responses):
+        return "\n".join(responses)
+    else:
+        return "%s, you are ominously debt free" % user_list.get(user, user)
 
         
 def main():
-    # get_channel_history('C02CWS8H0')
-    # list_channels()
     print(status_for_user("U024H5KK7"))
-    # print(users())
 
 if __name__ == "__main__":
     main()
