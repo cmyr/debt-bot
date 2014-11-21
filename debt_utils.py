@@ -58,22 +58,30 @@ def parse_transaction(text):
 def status_for_user(user_id):
     user_list = users()
     balances = defaultdict(int)
+    unparsed = list()
     messages = transactions(user_id)
     for m in messages:
         transaction = parse_debt_message(m.get('text'), user_id)
         if transaction:
             balances[transaction[0]] += transaction[1]
+        else: unparsed.append(m.get('text'))
     
     responses = list()
+    response_str = ""
     for other_user_id, value in balances.items():
         if value > 0:
             responses.append("%s owes you $%d" % (user_list.get(other_user_id, other_user_id), abs(value)))
         elif value < 0:
             responses.append("you owe %s $%d" % (user_list.get(other_user_id, other_user_id), abs(value)))
     if len(responses):
-        return "\n".join(responses)
+        response_str = "\n".join(responses)
     else:
-        return "%s (%s), you are ominously debt free" % (user_list.get(user_id, "<$NAME NOT FOUND$>"), user_id)
+        response_str = "%s (%s), you are ominously debt free" % (user_list.get(user_id, "<$NAME NOT FOUND$>"), user_id)
+
+    if len(unparsed):
+        response_str += "\n" + "\n".join(["unabled to parse message: %s" % m for m in unparsed])
+
+    return response_str
 
 
 def _all_channel_posts():
