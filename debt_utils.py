@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import re
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 from slacker import Slacker
 from token import slack_token
@@ -11,6 +11,8 @@ from token import slack_token
 slack = Slacker(slack_token)
 
 DEBT_CHANNEL_ID = 'C02CWS8H0'
+
+Transaction = namedtuple("Transaction", ["first_party", "operator", "second_party", "ammount", "more_info"])
 
 def list_channels():
     response = slack.channels.list()
@@ -26,21 +28,32 @@ def get_channel_history(channel_id):
     return [m for m in response.body['messages'] if m.get('text')]
 
 def parse_debt_message(message, user):
-    parsed = re.search(r'<@(.*)>(.*)<@(.*?)>.?([0-9]+)\$?(.*)', message)
-    if parsed:
-        if parsed.group(1) == user:
-             return (parsed.group(3), -int(parsed.group(4)))
-        elif parsed.group(3) == user:
-            return (parsed.group(1), int(parsed.group(4)))
+    transaction = parse_transaction(message)
+    if transaction:
+        if transaction.first_party == user:
+             return (transaction.second_party, -int(transaction.ammount))
+        elif transaction.second_party == user:
+            return (transaction.first_party, int(transaction.ammount))
         else:
-            print(parsed.groups())
-    # else:
-        # print(message)
+            print('weird transaction: ', transaction)
+    else:
+        print("failed to find transaction:", message)
+
 
 def transactions(user_id):
     messages = get_channel_history(DEBT_CHANNEL_ID)
     messages = [m for m in messages if re.search(user_id, m.get('text', ''))]
     return messages
+
+def parse_transaction(text):
+    parsed = re.search(r'<?@(\w+)>?\s*(\S*)\s*<?@(\w+)>?\s.?\$?([0-9\.]+)\$?(.*)', text)
+    if parsed:
+        return Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(4), parsed.group(5))
+    parsed = re.search(r'<?@(\w+)>?\s*(\S*)\s*<?@(\w+)>?\s(.*?)([0-9\.]+)', text)
+    if parsed:
+        return Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(5), parsed.group(4))
+    # parsed = re.search(r'(@\w*)(.*)<@(.*?)>(.*?)([0-9\.]+)', text)
+
 
 def status_for_user(user_id):
     user_list = users()
@@ -54,17 +67,37 @@ def status_for_user(user_id):
     responses = list()
     for other_user_id, value in balances.items():
         if value > 0:
-            responses.append("%s owes you $%d" % (user_list[other_user_id], abs(value)))
-        else:
-            responses.append("you owe %s $%d" % (user_list[other_user_id], abs(value)))
+            responses.append("%s owes you $%d" % (user_list.get(other_user_id, other_user_id), abs(value)))
+        elif value < 0:
+            responses.append("you owe %s $%d" % (user_list.get(other_user_id, other_user_id), abs(value)))
     if len(responses):
         return "\n".join(responses)
     else:
         return "%s (%s), you are ominously debt free" % (user_list.get(user_id, "<$NAME NOT FOUND$>"), user_id)
 
-        
+
+def _all_channel_posts():
+    all_messages = get_channel_history(DEBT_CHANNEL_ID)
+    for message in all_messages:
+        text = message.get('text')
+        parsed = re.search(r'<@(.*)>(.*)<@(.*?)>.?\$?([0-9\.]+)\$?(.*)', text)
+        if parsed:
+            transaction = Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(4), parsed.group(5))
+            print(transaction)
+        else:
+            parsed = re.search(r'<@(.*)>(.*)<@(.*?)>(.*?)([0-9\.]+)', text)
+            if parsed:
+                transaction = Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(5), parsed.group(4))
+                print(transaction)
+            else:
+                print(text)
+
+
+
 def main():
     print(status_for_user("U02G8SVCB"))
+    # print(transactions("U02G8SVCB"))
+    # _all_channel_posts()
 
 if __name__ == "__main__":
     main()
