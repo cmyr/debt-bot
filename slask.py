@@ -37,12 +37,15 @@ def main():
     if username == msguser or msguser.lower() == "slackbot":
         return ""
 
-    # text = repr(request.form)
+    text = ""
     try:
         text = "\n\n" + handle_message(request.form) 
     except Exception as err:
         text = "\n\n" + str(err)
 
+    if text == "":
+        return
+    
     response = {
         "text": text,
         "username": username,
