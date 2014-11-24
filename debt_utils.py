@@ -31,9 +31,9 @@ def parse_debt_message(message, user):
     transaction = parse_transaction(message)
     if transaction:
         if transaction.first_party == user:
-             return (transaction.second_party, -int(transaction.ammount))
+             return (transaction.second_party, -float(transaction.ammount))
         elif transaction.second_party == user:
-            return (transaction.first_party, int(transaction.ammount))
+            return (transaction.first_party, float(transaction.ammount))
         else:
             print('weird transaction: ', transaction)
     else:
@@ -57,7 +57,7 @@ def parse_transaction(text):
 
 def status_for_user(user_id):
     user_list = users()
-    balances = defaultdict(int)
+    balances = defaultdict(float)
     unparsed = list()
     messages = transactions(user_id)
     for m in messages:
