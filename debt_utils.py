@@ -70,9 +70,9 @@ def status_for_user(user_id):
     response_str = ""
     for other_user_id, value in balances.items():
         if value > 0:
-            responses.append("%s owes you $%d" % (user_list.get(other_user_id, other_user_id), abs(value)))
+            responses.append("%s owes you $%0.2f" % (user_list.get(other_user_id, other_user_id), abs(value)))
         elif value < 0:
-            responses.append("you owe %s $%d" % (user_list.get(other_user_id, other_user_id), abs(value)))
+            responses.append("you owe %s $%0.2f" % (user_list.get(other_user_id, other_user_id), abs(value)))
     if len(responses):
         response_str = "\n".join(responses)
     else:
