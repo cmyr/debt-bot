@@ -23,7 +23,8 @@ def handle_message(message):
     if re.findall(r"^transactions", message.get("text", ""), flags=re.IGNORECASE):
         transactions = debt_utils.transactions(message.get("user_id"))
         if len(transactions):
-            return "\n".join([urllib.unquote(m.get("text", "")) for m in transactions])
+            return "\n".join([urllib.unquote(m.get("text", ""))
+             for m in transactions])
     return "nothing found :("
 
 @app.route("/", methods=['POST'])
@@ -36,7 +37,7 @@ def main():
     if username == msguser or msguser.lower() == "slackbot":
         return ""
 
-    text = repr(request.form)
+    # text = repr(request.form)
     try:
         text += "\n\n" + handle_message(request.form) 
     except Exception as err:
