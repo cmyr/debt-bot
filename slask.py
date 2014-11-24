@@ -39,9 +39,9 @@ def main():
 
     # text = repr(request.form)
     try:
-        text += "\n\n" + handle_message(request.form) 
+        text = "\n\n" + handle_message(request.form) 
     except Exception as err:
-        text += "\n\n" + str(err)
+        text = "\n\n" + str(err)
 
     response = {
         "text": text,
