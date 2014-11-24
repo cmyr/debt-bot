@@ -25,7 +25,6 @@ def handle_message(message):
         if len(transactions):
             return "\n".join([urllib.unquote(m.get("text", ""))
              for m in transactions])
-    return "nothing found :("
 
 @app.route("/", methods=['POST'])
 def main():
