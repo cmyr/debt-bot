@@ -44,7 +44,7 @@ def main():
         text = "\n\n" + str(err)
 
     if text == "":
-        return
+        return text
     
     response = {
         "text": text,
