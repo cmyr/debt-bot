@@ -39,9 +39,9 @@ def main():
 
     text = None
     try:
-        text = "\n\n" + handle_message(request.form) 
+        text = handle_message(request.form) 
     except Exception as err:
-        text = "\n\n" + str(err)
+        text = str(err)
 
     if not text:
         return ""
