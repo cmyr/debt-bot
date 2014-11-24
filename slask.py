@@ -25,7 +25,7 @@ def handle_message(message):
         if len(transactions):
             return "\n".join([urllib.unquote(m.get("text", ""))
              for m in transactions])
-    return ""
+    return None
 
 @app.route("/", methods=['POST'])
 def main():
@@ -43,7 +43,8 @@ def main():
     except Exception as err:
         text = "\n\n" + str(err)
 
-    if not text: return ""
+    if not text:
+        return ""
     
     response = {
         "text": text,
