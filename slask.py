@@ -18,8 +18,13 @@ import debt_utils
 from config import config
 
 def handle_message(message):
+    # 'help'
+    if re.findall(r"^help", message.get("text", ""), flags=re.IGNORECASE):
+        return debt_utils.help_message()
+    # 'status'
     if re.findall(r"^status", message.get("text", ""), flags=re.IGNORECASE):
         return debt_utils.status_for_user(message.get("user_id"))
+    # 'transactions'
     if re.findall(r"^transactions", message.get("text", ""), flags=re.IGNORECASE):
         transactions = debt_utils.transactions(message.get("user_id"))
         if len(transactions):
