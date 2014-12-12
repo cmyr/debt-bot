@@ -4,9 +4,11 @@ from __future__ import unicode_literals
 
 import re
 from collections import defaultdict, namedtuple
+import operator
 
 from slacker import Slacker
 from token import slack_token
+from aliases import DEBT_BOT_ALIASES
 
 from transaction import Transaction
 slack = Slacker(slack_token)
@@ -47,11 +49,13 @@ def status_for_user(user_id):
 def response_for_balances(balances, user_list, unparsed):
     responses = list()
     response_str = ""
-    for other_user_id, value in balances.items():
+    for other_user_id, value in reversed(sorted(
+        balances.items(),
+        key=operator.itemgetter(1))):
         if value > 0:
-            responses.append("%s owes you $%0.2f" % (user_list.get(other_user_id, other_user_id), abs(value)))
+            responses.append("%s owes you $%0.2f" % (user_name_for_id(other_user_id, user_list), abs(value)))
         elif value < 0:
-            responses.append("you owe %s $%0.2f" % (user_list.get(other_user_id, other_user_id), abs(value)))
+            responses.append("you owe %s $%0.2f" % (user_name_for_id(other_user_id, user_list), abs(value)))
     if len(responses):
         response_str = "\n".join(responses)
     else:
@@ -62,6 +66,9 @@ def response_for_balances(balances, user_list, unparsed):
 
     return response_str
 
+def user_name_for_id(user_id, user_list):
+    user = user_list.get(user_id, user_id)
+    return DEBT_BOT_ALIASES.get(user.lower(), user)
 
 def _all_channel_posts():
     all_messages = get_channel_history(DEBT_CHANNEL_ID)
@@ -85,7 +92,7 @@ def all_transactions():
     return [Transaction(p) for p in all_messages if p != None]
 
 def main():
-    print(status_for_user("U02G8SVCB"))
+    print(status_for_user("U024H5LFB"))
     # print([u[1] for u in users().items()])
     # print(get_channel_history(DEBT_CHANNEL_ID))
     # print([h.get('text') for h in get_channel_history(DEBT_CHANNEL_ID)])
