@@ -43,6 +43,13 @@ class Transaction(object):
                 self.currency, self.notes)
         return "No Transaction"
 
+    def obligation_to_user(self, user):
+        if user == self.creditor:
+            return self.value, self.debtor
+        if user == self.debtor:
+            return -self.value, self.creditor
+        return 0, None
+
     def componentize_transaction(self, text, funcs):
         if DEBUG:
             print(text)
@@ -64,7 +71,6 @@ class Transaction(object):
              parsed.group(5), parsed.group(4))
 
 
-
     def parse_components(self, raw_transaction):
         if raw_transaction:
             if DEBUG:
@@ -82,7 +88,6 @@ class Transaction(object):
             if raw_transaction.notes != "":
                 self.notes = raw_transaction.notes
 
-
     def parse_operator(self, operator_text):
         if operator_text == "-&gt;":
             return TO_KEY
@@ -97,7 +102,7 @@ def test():
     u'<@U024H4SR1|will> set the channel topic: trying to incur more debt to make the debt-bot more exciting',
  ]
  for t in tests:
-    print(Transaction(t))
+    print(Transaction(t).obligation_to_user('U024H5LFB'))
 
 
 if __name__ == '__main__':
