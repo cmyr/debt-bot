@@ -25,12 +25,12 @@ class Transaction(object):
 
     def __init__(self, input_str):
         super(Transaction, self).__init__()
-        raw_text = input_str
-        raw_transaction = self.componentize_transaction(
+        self.raw_text = input_str
+        self.raw_transaction = self.componentize_transaction(
             input_str, 
             [self.componentize1, self.componentize2]
             )
-        self.parse_components(raw_transaction)
+        self.parse_components(self.raw_transaction)
 
     def __repr__(self):
         return "%s %s %s %s %s" % (
@@ -72,7 +72,8 @@ class Transaction(object):
 
             self.operator = raw_transaction.operator
             self.value = raw_transaction.value
-            self.notes = raw_transaction.notes
+            if raw_transaction.notes != "":
+                self.notes = raw_transaction.notes
 
 
     def parse_operator(self, operator_text):
@@ -82,8 +83,14 @@ class Transaction(object):
             return FROM_KEY
 
 def test():
- test_string = '<@U024H4SR1> -&gt; <@U024H5LFB> $15 (thai food)'
- print(Transaction(test_string))
+ tests = [
+    '<@U024H4SR1> -&gt; <@U024H5LFB> $15 (thai food)',
+    '<@U024H5KK7> -&gt; <@U024H5LFB> 20$',
+    '<@U024H5KK7> -&gt; <@U024H5LFB> $10 sandwich place',
+    u'<@U024H4SR1|will> set the channel topic: trying to incur more debt to make the debt-bot more exciting',
+ ]
+ for t in tests:
+    print(Transaction(t))
 
 
 if __name__ == '__main__':
