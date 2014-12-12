@@ -8,11 +8,10 @@ from collections import defaultdict, namedtuple
 from slacker import Slacker
 from token import slack_token
 
+from transaction import Transaction
 slack = Slacker(slack_token)
 
 DEBT_CHANNEL_ID = 'C02CWS8H0'
-
-Transaction = namedtuple("Transaction", ["first_party", "operator", "second_party", "ammount", "more_info"])
 
 def list_channels():
     response = slack.channels.list()
@@ -27,33 +26,11 @@ def get_channel_history(channel_id):
     response = slack.channels.history(channel = channel_id, count = 1000)
     return [m for m in response.body['messages'] if m.get('text')]
 
-def parse_debt_message(message, user):
-    transaction = parse_transaction(message)
-    if transaction:
-        if transaction.first_party == user:
-             return (transaction.second_party, -float(transaction.ammount))
-        elif transaction.second_party == user:
-            return (transaction.first_party, float(transaction.ammount))
-        else:
-            print('weird transaction: ', transaction)
-    else:
-        print("failed to find transaction:", message)
-
 
 def transactions(user_id):
     messages = get_channel_history(DEBT_CHANNEL_ID)
     messages = [m for m in messages if re.search(user_id, m.get('text', ''))]
     return messages
-
-def parse_transaction(text):
-    parsed = re.search(r'<?@(\w+)>?\s*(\S*)\s*<?@(\w+)>?\s.?\$?([0-9\.]+)\$?(.*)', text)
-    if parsed:
-        return Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(4), parsed.group(5))
-    parsed = re.search(r'<?@(\w+)>?\s*(\S*)\s*<?@(\w+)>?\s(.*?)([0-9\.]+)', text)
-    if parsed:
-        return Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(5), parsed.group(4))
-    # parsed = re.search(r'(@\w*)(.*)<@(.*?)>(.*?)([0-9\.]+)', text)
-
 
 def status_for_user(user_id):
     user_list = users()
@@ -101,11 +78,22 @@ def _all_channel_posts():
                 print(text)
 
 
+def all_transactions():
+    all_messages = [m.get('text') for m in get_channel_history(DEBT_CHANNEL_ID)]
+    return [Transaction(p) for p in all_messages if p != None]
 
 def main():
-    print(status_for_user("U02G8SVCB"))
+    # print(status_for_user("U02G8SVCB"))
+    # print([u[1] for u in users().items()])
+    # print(get_channel_history(DEBT_CHANNEL_ID))
+    # print([h.get('text') for h in get_channel_history(DEBT_CHANNEL_ID)])
+    # print(all_transactions(), sep='\n')
     # print(transactions("U02G8SVCB"))
     # _all_channel_posts()
+
+    transactions = all_transactions()
+    for t in transactions:
+        print(t.raw_text, "|||", t)
 
 if __name__ == "__main__":
     main()
