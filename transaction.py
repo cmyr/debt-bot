@@ -23,6 +23,10 @@ class Transaction(object):
     raw_text = None
     raw_transaction = None
 
+    @property
+    def parsed(self):
+        return True if self.raw_transaction else False
+    
     def __init__(self, input_str):
         super(Transaction, self).__init__()
         self.raw_text = input_str
@@ -33,9 +37,11 @@ class Transaction(object):
         self.parse_components(self.raw_transaction)
 
     def __repr__(self):
-        return "%s %s %s %s %s" % (
-            self.debtor, self.creditor, self.value,
-            self.currency, self.notes)
+        if self.parsed:
+            return "%s %s %s %s %s" % (
+                self.debtor, self.creditor, self.value,
+                self.currency, self.notes)
+        return "No Transaction"
 
     def componentize_transaction(self, text, funcs):
         if DEBUG:
@@ -46,16 +52,17 @@ class Transaction(object):
                 return result
 
     def componentize1(self, text):
-        parsed = re.search(r'<?@(\w+)>?\s*(\S*)\s*<?@(\w+)>?\s?\$?([0-9\.]+)\$?(.*)', text)
+        parsed = re.search(r'<?@(\w+)>?.?\s*(\S*)\s*<?@(\w+)>?\s?\$?([0-9\.]+)\$?(.*)', text)
         if parsed:
             return RawTransaction(parsed.group(1), parsed.group(2), parsed.group(3),
              parsed.group(4), parsed.group(5))
 
     def componentize2(self, text):
-        parsed = re.search(r'<?@(\w+)>?\s*(\S*)\s*<?@(\w+)>?\s(.*?)([0-9\.]+)', text)
+        parsed = re.search(r'<?@(\w+)>?.?\s*(\S*)\s*<?@(\w+)>?\s(.*?)([0-9\.]+)', text)
         if parsed:
             return RawTransaction(parsed.group(1), parsed.group(2), parsed.group(3),
-             parsed.group(5), parsed.group(4))        
+             parsed.group(5), parsed.group(4))
+
 
 
     def parse_components(self, raw_transaction):
