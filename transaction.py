@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import re
 from collections import namedtuple
 
+DEBUG = False
+
 # these are operator types. This is annoying. I'd love an enum
 FROM_KEY = "from"
 TO_KEY = "to"
@@ -18,10 +20,12 @@ class Transaction(object):
     currency = None
     notes = None
 
+    raw_text = None
     raw_transaction = None
 
     def __init__(self, input_str):
         super(Transaction, self).__init__()
+        raw_text = input_str
         raw_transaction = self.componentize_transaction(
             input_str, 
             [self.componentize1, self.componentize2]
@@ -34,13 +38,15 @@ class Transaction(object):
             self.currency, self.notes)
 
     def componentize_transaction(self, text, funcs):
+        if DEBUG:
+            print(text)
         for f in funcs:
             result = f(text)
             if result:
                 return result
 
     def componentize1(self, text):
-        parsed = re.search(r'<?@(\w+)>?\s*(\S*)\s*<?@(\w+)>?\s.?\$?([0-9\.]+)\$?(.*)', text)
+        parsed = re.search(r'<?@(\w+)>?\s*(\S*)\s*<?@(\w+)>?\s?\$?([0-9\.]+)\$?(.*)', text)
         if parsed:
             return RawTransaction(parsed.group(1), parsed.group(2), parsed.group(3),
              parsed.group(4), parsed.group(5))
@@ -54,6 +60,8 @@ class Transaction(object):
 
     def parse_components(self, raw_transaction):
         if raw_transaction:
+            if DEBUG:
+                print(raw_transaction)
             operator = self.parse_operator(raw_transaction.operator)
             if operator == TO_KEY:
                 self.debtor = raw_transaction.first_party
