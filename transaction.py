@@ -84,7 +84,7 @@ class Transaction(object):
                 self.creditor = RawTransaction.first_party
 
             self.operator = raw_transaction.operator
-            self.value = raw_transaction.value
+            self.value = float(raw_transaction.value)
             if raw_transaction.notes != "":
                 self.notes = raw_transaction.notes
 

@@ -26,7 +26,6 @@ def get_channel_history(channel_id):
     response = slack.channels.history(channel = channel_id, count = 1000)
     return [m for m in response.body['messages'] if m.get('text')]
 
-
 def transactions(user_id):
     messages = get_channel_history(DEBT_CHANNEL_ID)
     messages = [m for m in messages if re.search(user_id, m.get('text', ''))]
@@ -38,11 +37,14 @@ def status_for_user(user_id):
     unparsed = list()
     messages = transactions(user_id)
     for m in messages:
-        transaction = parse_debt_message(m.get('text'), user_id)
-        if transaction:
-            balances[transaction[0]] += transaction[1]
+        transaction = Transaction(m.get('text'))
+        if transaction.parsed:
+            value, party = transaction.obligation_to_user(user_id)
+            balances[party] += value
         else: unparsed.append(m.get('text'))
-    
+    return response_for_balances(balances, user_list, unparsed)
+
+def response_for_balances(balances, user_list, unparsed):
     responses = list()
     response_str = ""
     for other_user_id, value in balances.items():
@@ -83,7 +85,7 @@ def all_transactions():
     return [Transaction(p) for p in all_messages if p != None]
 
 def main():
-    # print(status_for_user("U02G8SVCB"))
+    print(status_for_user("U02G8SVCB"))
     # print([u[1] for u in users().items()])
     # print(get_channel_history(DEBT_CHANNEL_ID))
     # print([h.get('text') for h in get_channel_history(DEBT_CHANNEL_ID)])
@@ -91,9 +93,10 @@ def main():
     # print(transactions("U02G8SVCB"))
     # _all_channel_posts()
 
-    transactions = all_transactions()
-    for t in transactions:
-        print(t.raw_text, "|||", t)
+    # transactions = all_transactions()
+    # for t in transactions:
+    #     if not t.parsed:
+    #         print(t.raw_text, "|||", t)
 
 if __name__ == "__main__":
     main()
