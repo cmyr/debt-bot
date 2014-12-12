@@ -15,6 +15,21 @@ slack = Slacker(slack_token)
 
 DEBT_CHANNEL_ID = 'C02CWS8H0'
 
+def help_message():
+    return """
+    Welcome to #debt! I respond to the following commands:
+    help: show this menu
+    status: show your debtors and creditors
+    transactions: show all of your transactions
+
+    new transactions must be in the following format:
+    (@*user1*) (*operator*) @*user2* (*value*) (*notes*)
+    where *user1 and *user2* are names, prefixed with an at-sign;
+    *operator* is one of -> or <-;
+    *value* is a numerical value;
+    *notes* is a field for entering additional text.
+    """
+
 def list_channels():
     response = slack.channels.list()
     channels = [{'id': c['id'], 'name': c['name']} for c in response.body['channels']]
