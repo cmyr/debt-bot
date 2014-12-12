@@ -23,8 +23,8 @@ def help_message():
     transactions: show all of your transactions
 
     new transactions must be in the following format:
-    (@*user1*) (*operator*) @*user2* (*value*) (*notes*)
-    where *user1 and *user2* are names, prefixed with an at-sign;
+    (*user1*) (*operator*) *user2* (*value*) (*notes*), where:
+    *user1 and *user2* are names, prefixed with an at-sign;
     *operator* is one of -> or <-;
     *value* is a numerical value;
     *notes* is a field for entering additional text.
@@ -48,7 +48,7 @@ def transactions(user_id):
     messages = [m for m in messages if re.search(user_id, m.get('text', ''))]
     return messages
 
-def status_for_user(user_id):
+def status_for_user(user_id, show_unparsed = False):
     user_list = users()
     balances = defaultdict(float)
     unparsed = list()
@@ -59,28 +59,28 @@ def status_for_user(user_id):
             value, party = transaction.obligation_to_user(user_id)
             balances[party] += value
         else: unparsed.append(m.get('text'))
-    return response_for_balances(balances, user_list, unparsed)
+   
+    response = response_for_balances(balances, user_list)
+    if show_unparsed and len(unparsed):
+        response += "\n" + "\n".join(["unabled to parse message: %s" % m for m in unparsed])
+    return response
 
-def response_for_balances(balances, user_list, unparsed):
+def response_for_balances(balances, user_list):
     responses = list()
     response_str = ""
     for other_user_id, value in reversed(sorted(
         balances.items(),
         key=operator.itemgetter(1))):
         if value > 0:
-            responses.append("%s owes you $%0.2f" % (user_name_for_id(other_user_id, user_list), abs(value)))
+            responses.append("*%s* owes you $%0.2f" % (user_name_for_id(other_user_id, user_list), abs(value)))
         elif value < 0:
-            responses.append("you owe %s $%0.2f" % (user_name_for_id(other_user_id, user_list), abs(value)))
+            responses.append("you owe *%s* $%0.2f" % (user_name_for_id(other_user_id, user_list), abs(value)))
     if len(responses):
         response_str = "\n".join(responses)
     else:
         response_str = "%s (%s), you are ominously debt free" % (user_list.get(user_id, "<$NAME NOT FOUND$>"), user_id)
-
-    if len(unparsed):
-        response_str += "\n" + "\n".join(["unabled to parse message: %s" % m for m in unparsed])
-
     return response_str
-
+    
 def user_name_for_id(user_id, user_list):
     user = user_list.get(user_id, user_id)
     return DEBT_BOT_ALIASES.get(user.lower(), user)
@@ -107,7 +107,7 @@ def all_transactions():
     return [Transaction(p) for p in all_messages if p != None]
 
 def main():
-    print(status_for_user("U024H5LFB"))
+    print(status_for_user("U024H5LFB", True))
     # print([u[1] for u in users().items()])
     # print(get_channel_history(DEBT_CHANNEL_ID))
     # print([h.get('text') for h in get_channel_history(DEBT_CHANNEL_ID)])
