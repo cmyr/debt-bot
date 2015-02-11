@@ -82,24 +82,24 @@ def response_for_balances(balances, user_list):
     return response_str
     
 def user_name_for_id(user_id, user_list):
-    user = user_list.get(user_id, user_id)
-    return DEBT_BOT_ALIASES.get(user.lower(), user)
+    user = user_list.get(user_id, user_id).lower()
+    return DEBT_BOT_ALIASES.get(user, user())
 
-def _all_channel_posts():
-    all_messages = get_channel_history(DEBT_CHANNEL_ID)
-    for message in all_messages:
-        text = message.get('text')
-        parsed = re.search(r'<@(.*)>(.*)<@(.*?)>.?\$?([0-9\.]+)\$?(.*)', text)
-        if parsed:
-            transaction = Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(4), parsed.group(5))
-            print(transaction)
-        else:
-            parsed = re.search(r'<@(.*)>(.*)<@(.*?)>(.*?)([0-9\.]+)', text)
-            if parsed:
-                transaction = Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(5), parsed.group(4))
-                print(transaction)
-            else:
-                print(text)
+# def _all_channel_posts():
+#     all_messages = get_channel_history(DEBT_CHANNEL_ID)
+#     for message in all_messages:
+#         text = message.get('text')
+#         parsed = re.search(r'<@(.*)>(.*)<@(.*?)>.?\$?([0-9\.]+)\$?(.*)', text)
+#         if parsed:
+#             transaction = Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(4), parsed.group(5))
+#             print(transaction)
+#         else:
+#             parsed = re.search(r'<@(.*)>(.*)<@(.*?)>(.*?)([0-9\.]+)', text)
+#             if parsed:
+#                 transaction = Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(5), parsed.group(4))
+#                 print(transaction)
+#             else:
+#                 print(text)
 
 
 def all_transactions():
