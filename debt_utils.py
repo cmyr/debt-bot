@@ -58,29 +58,48 @@ def status_for_user(user_id, show_unparsed = False):
         if transaction.parsed:
             value, party = transaction.obligation_to_user(user_id)
             balances[party] += value
-        else: unparsed.append(m.get('text'))
-   
+        else:
+            unparsed.append(m.get('text'))
+
     response = response_for_balances(balances, user_list)
     if show_unparsed and len(unparsed):
-        response += "\n" + "\n".join(["unabled to parse message: %s" % m for m in unparsed])
-    return response
+        response += "\n" + \
+            "\n".join(["unabled to parse message: %s" % m for m in unparsed])
+
+    total_value = sum(b for b in balances.values())
+    decorator = decoration_for_balance(total_value)
+    preamble = "%s status for %s %s\n" % (
+        decorator, user_name_for_id(user_id, user_list), decorator)
+    return preamble + response
+
 
 def response_for_balances(balances, user_list):
     responses = list()
     response_str = ""
     for other_user_id, value in reversed(sorted(
-        balances.items(),
-        key=operator.itemgetter(1))):
+            balances.items(),
+            key=operator.itemgetter(1))):
         if value > 0:
-            responses.append("*%s* owes you $%0.2f" % (user_name_for_id(other_user_id, user_list), abs(value)))
+            responses.append(
+                "*%s* owes you $%0.2f" % (user_name_for_id(other_user_id, user_list), abs(value)))
         elif value < 0:
-            responses.append("you owe *%s* $%0.2f" % (user_name_for_id(other_user_id, user_list), abs(value)))
+            responses.append(
+                "you owe *%s* $%0.2f" % (user_name_for_id(other_user_id, user_list), abs(value)))
     if len(responses):
         response_str = "\n".join(responses)
     else:
-        response_str = "%s (%s), you are ominously debt free" % (user_list.get(user_id, "<$NAME NOT FOUND$>"), user_id)
+        response_str = " %s (%s), you are ominously debt free" % (
+            user_list.get(user_id, "<$NAME NOT FOUND$>"), user_id)
     return response_str
-    
+
+
+def decoration_for_balance(balance):
+    if balance > 0:
+        return "📈"
+    else:
+        return "📉"
+
+
 def user_name_for_id(user_id, user_list):
     user = user_list.get(user_id, user_id).lower()
     return DEBT_BOT_ALIASES.get(user, user)
