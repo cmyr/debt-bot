@@ -83,7 +83,7 @@ def response_for_balances(balances, user_list):
     
 def user_name_for_id(user_id, user_list):
     user = user_list.get(user_id, user_id).lower()
-    return DEBT_BOT_ALIASES.get(user, user())
+    return DEBT_BOT_ALIASES.get(user, user)
 
 # def _all_channel_posts():
 #     all_messages = get_channel_history(DEBT_CHANNEL_ID)
