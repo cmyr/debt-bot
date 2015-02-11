@@ -15,6 +15,7 @@ slack = Slacker(slack_token)
 
 DEBT_CHANNEL_ID = 'C02CWS8H0'
 
+
 def help_message():
     return """
     Welcome to #debt! I respond to the following commands:
@@ -30,25 +31,31 @@ def help_message():
     *notes* is a field for entering additional text.
     """
 
+
 def list_channels():
     response = slack.channels.list()
-    channels = [{'id': c['id'], 'name': c['name']} for c in response.body['channels']]
+    channels = [{'id': c['id'], 'name': c['name']}
+                for c in response.body['channels']]
     print(channels)
+
 
 def users():
     response = slack.users.list()
     return {m['id']: m['name'] for m in response.body['members']}
 
+
 def get_channel_history(channel_id):
-    response = slack.channels.history(channel = channel_id, count = 1000)
+    response = slack.channels.history(channel=channel_id, count=1000)
     return [m for m in response.body['messages'] if m.get('text')]
+
 
 def transactions(user_id):
     messages = get_channel_history(DEBT_CHANNEL_ID)
     messages = [m for m in messages if re.search(user_id, m.get('text', ''))]
     return messages
 
-def status_for_user(user_id, show_unparsed = False):
+
+def status_for_user(user_id, show_unparsed=False):
     user_list = users()
     balances = defaultdict(float)
     unparsed = list()
@@ -122,8 +129,10 @@ def user_name_for_id(user_id, user_list):
 
 
 def all_transactions():
-    all_messages = [m.get('text') for m in get_channel_history(DEBT_CHANNEL_ID)]
+    all_messages = [m.get('text')
+                    for m in get_channel_history(DEBT_CHANNEL_ID)]
     return [Transaction(p) for p in all_messages if p != None]
+
 
 def main():
     print(status_for_user("U024H5LFB", True))
