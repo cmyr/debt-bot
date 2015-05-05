@@ -59,19 +59,25 @@ def status_for_user(user_id, show_unparsed=False):
     user_list = users()
     balances = defaultdict(float)
     unparsed = list()
+    errors = list()
     messages = transactions(user_id)
     for m in messages:
-        transaction = Transaction(m.get('text'))
-        if transaction.parsed:
-            value, party = transaction.obligation_to_user(user_id)
-            balances[party] += value
-        else:
-            unparsed.append(m.get('text'))
+        try:
+            transaction = Transaction(m.get('text'))
+            if transaction.parsed:
+                value, party = transaction.obligation_to_user(user_id)
+                balances[party] += value
+            else:
+                unparsed.append(m.get('text'))
+        except Exception as err:
+            errors.append((err,m))
+            # return "exception %s handling message %s" % (err, m)
 
     response = response_for_balances(balances, user_list)
     if show_unparsed and len(unparsed):
         response += "\n" + \
-            "\n".join(["unabled to parse message: %s" % m for m in unparsed])
+            "\n".join(["unabled to parse message: %s" % m for m in unparsed]) + "\n" + \
+            "\n".join(["error %s in message %s" % (e, m) for e, m in errors])
 
     total_value = sum(b for b in balances.values())
     decorator = decoration_for_balance(total_value)
