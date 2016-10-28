@@ -1,13 +1,12 @@
 from glob import glob
 import importlib
-import json
 import os
 import re
 import sys
 import traceback
 import urllib
 
-from flask import Flask, request
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
@@ -16,6 +15,7 @@ os.chdir(curdir)
 
 import debt_utils
 from config import config
+
 
 def handle_message(message):
     # 'help'
@@ -29,8 +29,9 @@ def handle_message(message):
         transactions = debt_utils.transactions(message.get("user_id"))
         if len(transactions):
             return "\n".join([urllib.unquote(m.get("text", ""))
-             for m in transactions])
+                              for m in transactions])
     return None
+
 
 @app.route("/", methods=['POST'])
 def main():
@@ -44,20 +45,20 @@ def main():
 
     text = None
     try:
-        text = handle_message(request.form) 
+        text = handle_message(request.form)
     except Exception as err:
         text = str(err)
 
     if not text:
         return ""
-    
+
     response = {
         "text": text,
         "username": username,
         "icon_emoji": icon,
         "parse": "full",
     }
-    return json.dumps(response)
+    return jsonify(response)
 
 if __name__ == "__main__":
     app.run()

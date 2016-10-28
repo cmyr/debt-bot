@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import re
 from collections import defaultdict, namedtuple
 import operator
+import sys
 
 from slacker import Slacker
 from token import slack_token
@@ -45,7 +46,7 @@ def users():
 
 
 def get_channel_history(channel_id):
-    response = slack.channels.history(channel=channel_id, count=1000)
+    response = slack.channels.history(channel=channel_id, count=sys.maxsize)
     return [m for m in response.body['messages'] if m.get('text')]
 
 
