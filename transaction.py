@@ -29,7 +29,7 @@ class Transaction(object):
 
     @property
     def parsed(self):
-        return True if self.raw_transaction else False
+        return all([self.debtor, self.creditor, self.value])
 
     def __init__(self, input_str):
         super(Transaction, self).__init__()
@@ -41,11 +41,16 @@ class Transaction(object):
         self.parse_components(self.raw_transaction)
 
     def __repr__(self):
-        if self.parsed:
-            return "%s %s %s %s %s" % (
-                self.debtor, self.creditor, self.value,
-                self.currency, self.notes)
-        return "No Transaction"
+        msg = "debtor: {} creditor: {} value: {} notes: {}".format(
+            self.debtor or '',
+            self.creditor or '',
+            self.value or '',
+            self.currency or '',
+            self.notes or '')
+
+        if not self.parsed:
+            msg = 'FAILED TO PARSE: \n' + msg
+        return msg
 
     def obligation_to_user(self, user):
         if user == self.creditor:
@@ -109,11 +114,14 @@ def test():
         '<@U024H5KK7> -&gt; <@U024H5LFB> 20$',
         '<@U024H5KK7> -&gt; <@U024H5LFB> $10 sandwich place',
         '<@U024H5KK7> -&lt; <@U024H5LFB> $10 sandwich place',
+        '<@U024H4SR1> -&gt; <@U024H5LFB> $7',
         '<@U024H4SR1|will> set the channel topic: trying to incur \
         more debt to make the debt-bot more exciting',
     ]
     for t in tests:
-        print(Transaction(t).obligation_to_user('U024H5LFB'))
+        transaction = Transaction(t)
+        print(transaction)
+        print(transaction.obligation_to_user('U024H5LFB'))
 
 
 if __name__ == '__main__':
