@@ -46,8 +46,14 @@ def users():
 
 
 def get_channel_history(channel_id):
-    response = slack.channels.history(channel=channel_id, count=sys.maxsize)
-    return [m for m in response.body['messages'] if m.get('text')]
+    response = slack.channels.history(channel=channel_id, count=1000)
+    results = [m for m in response.body['messages'] if m.get('text')]
+
+    while response.body['has_more']:
+        oldest = min(m.get('ts') for m in response.body['messages'] if m.get('ts'))
+        response = slack.channels.history(channel=channel_id, count=1000, latest=oldest)
+        results.extend([m for m in response.body['messages'] if m.get('text')])
+    return results
 
 
 def transactions(user_id):
@@ -71,7 +77,7 @@ def status_for_user(user_id, show_unparsed=False):
             else:
                 unparsed.append(m.get('text'))
         except Exception as err:
-            errors.append((err,m))
+            errors.append((err, m))
             # return "exception %s handling message %s" % (err, m)
 
     response = response_for_balances(balances, user_list)
@@ -138,7 +144,7 @@ def user_name_for_id(user_id, user_list):
 def all_transactions():
     all_messages = [m.get('text')
                     for m in get_channel_history(DEBT_CHANNEL_ID)]
-    return [Transaction(p) for p in all_messages if p != None]
+    return [Transaction(p) for p in all_messages if p is not None]
 
 
 def main():
