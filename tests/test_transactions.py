@@ -7,7 +7,7 @@ from debtbot import transaction
 
 
 def test_symbol_clash():
-    inp = '<@U024H4SR1> -&gt;&lt; <@U024H5LFB> $15 (thai food)'
+    inp = '<@U024H4SR1> ->< <@U024H5LFB> $15 (thai food)'
     try:
         t = transaction.Transaction(inp)
         assert False
@@ -15,8 +15,30 @@ def test_symbol_clash():
         assert True
 
 
+def test_parse_operator():
+    for inp in [
+            '@colin -> @other 5',
+            '@colin --> @other 5',
+            '@colin <- @other 5',
+            '@colin < @other 5',
+            '@colin > @other 5'
+            ]:
+        t = transaction.Transaction(inp)
+        assert t.value == 5, inp
+
+
+def test_handle_colon():
+    inp = '<@U024H4SR1>: -> <@U024H5LFB> $15 (thai food)'
+    t = transaction.Transaction(inp)
+    assert t.creditor == "U024H4SR1"
+
+    inp = '@colin: -> <@U024H5LFB> $15 (thai food)'
+    t = transaction.Transaction(inp)
+    assert t.creditor == 'colin'
+
+
 def test_transaction_1():
-    inp = '<@U024H4SR1> -&gt; <@U024H5LFB> $15 (thai food)'
+    inp = '<@U024H4SR1> -> <@U024H5LFB> $15 (thai food)'
     t = transaction.Transaction(inp)
     assert t.debtor == 'U024H5LFB'
     assert t.creditor == 'U024H4SR1'
@@ -24,14 +46,14 @@ def test_transaction_1():
 
 
 def test_transaction_2():
-    inp = '<@U024H4SR1> -&lt; <@U024H5LFB> $15 (thai food)'
+    inp = '<@U024H4SR1> <- <@U024H5LFB> $15 (thai food)'
     t = transaction.Transaction(inp)
     assert t.parsed
     assert t.debtor == 'U024H4SR1'
 
 
 def test_transaction_fail_1():
-    inp = '<@U024H4SR1> -&gt; 56 money!'
+    inp = '<@U024H4SR1> -> 56 money!'
     try:
         t = transaction.Transaction(inp)
         assert False
@@ -40,18 +62,28 @@ def test_transaction_fail_1():
 
 
 def test_value():
-    inp = '<@U024H5KK7> -&lt; <@U024H5LFB> $10 sandwich place'
+    inp = '<@U024H5KK7> <- <@U024H5LFB> $10 sandwich place'
     t = transaction.Transaction(inp)
     assert t.value == 10
 
 
 def test_value_2():
-    inp = '<@U024H5KK7> -&lt; <@U024H5LFB> 10.5$ sandwich place'
+    inp = '<@U024H5KK7> <- <@U024H5LFB> 10.5$ sandwich place'
     t = transaction.Transaction(inp)
     assert t.value == 10.5
 
 
 def test_value_3():
-    inp = '<@U024H5KK7> -&lt; <@U024H5LFB> sandwich place $10.5$ yow'
+    inp = '<@U024H5KK7> <- <@U024H5LFB> sandwich place $10.5$ yow'
     t = transaction.Transaction(inp)
     assert t.value == 10.5
+
+
+def test_names():
+    inp = '@will -> @colin 35'
+    t = transaction.Transaction(inp)
+    assert t.debtor == 'colin'
+    assert t.creditor == 'will'
+    assert t.value == 35
+
+

@@ -6,7 +6,8 @@ import re
 from collections import defaultdict, namedtuple
 import operator
 import sys
-import urllib
+# import urllib
+from HTMLParser import HTMLParser
 
 from slacker import Slacker
 from slack_token import slack_token
@@ -26,11 +27,10 @@ def help_message():
     transactions: show all of your transactions
 
     new transactions must be in the following format:
-    (*user1*) (*operator*) *user2* (*value*) (*notes*), where:
+    (*user1*) (*operator*) *user2* (*value*) where:
     *user1 and *user2* are names, prefixed with an at-sign;
-    *operator* is one of -> or <-;
+    *operator* is one of < or >;
     *value* is a numerical value;
-    *notes* is a field for entering additional text.
     """
 
 
@@ -54,6 +54,10 @@ def get_channel_history(channel_id):
         oldest = min(m.get('ts') for m in response.body['messages'] if m.get('ts'))
         response = slack.channels.history(channel=channel_id, count=1000, latest=oldest)
         results.extend([m for m in response.body['messages'] if m.get('text')])
+    # fix > etc:
+    html = HTMLParser()
+    for m in results:
+        m['text'] = html.unescape(m['text'])
     return results
 
 
@@ -76,32 +80,32 @@ def printable_transactions(user_id):
                 m.get('text'), err)
 
     messages = transactions(user_id)
-    return [stringify_transaction(urllib.unquote(m.get('text'))) for m in messages]
+    return [stringify_transaction(m.get('text')) for m in messages]
+
+
+def sum_obligations(messages, user_id):
+    balances = defaultdict(float)
+    errors = list()
+    for m in messages:
+        try:
+            t = Transaction(m)
+            value, party = t.obligation_to_user(user_id)
+            balances[party] += value
+        except TransactionParseError as err:
+            errors.append(err)
+    return balances, errors
 
 
 def status_for_user(user_id, show_unparsed=False):
     user_list = users()
-    balances = defaultdict(float)
-    unparsed = list()
-    errors = list()
     messages = transactions(user_id)
-    for m in messages:
-        try:
-            transaction = Transaction(m.get('text'))
-            if transaction.parsed:
-                value, party = transaction.obligation_to_user(user_id)
-                balances[party] += value
-            else:
-                unparsed.append(m.get('text'))
-        except Exception as err:
-            errors.append((err, m))
-            # return "exception %s handling message %s" % (err, m)
+    balances, errors = sum_obligations([m.get('text') for m in messages], user_id)
 
     response = response_for_balances(balances, user_list, user_id)
     if show_unparsed and len(unparsed):
-        response += "\n" + \
-            "\n".join(["unabled to parse message: %s" % m for m in unparsed]) + "\n" + \
-            "\n".join(["error %s in message %s" % (e, m) for e, m in errors])
+        response = "{}\n{}".format(
+            response,
+            "\n".join(["error %s in message %s" % (e, m) for e, m in errors]))
 
     total_value = sum(b for b in balances.values())
     decorator = decoration_for_balance(total_value)
@@ -140,22 +144,6 @@ def decoration_for_balance(balance):
 def user_name_for_id(user_id, user_list):
     user = user_list.get(user_id, user_id).lower()
     return DEBT_BOT_ALIASES.get(user, user)
-
-# def _all_channel_posts():
-#     all_messages = get_channel_history(DEBT_CHANNEL_ID)
-#     for message in all_messages:
-#         text = message.get('text')
-#         parsed = re.search(r'<@(.*)>(.*)<@(.*?)>.?\$?([0-9\.]+)\$?(.*)', text)
-#         if parsed:
-#             transaction = Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(4), parsed.group(5))
-#             print(transaction)
-#         else:
-#             parsed = re.search(r'<@(.*)>(.*)<@(.*?)>(.*?)([0-9\.]+)', text)
-#             if parsed:
-#                 transaction = Transaction(parsed.group(1), parsed.group(2), parsed.group(3), parsed.group(5), parsed.group(4))
-#                 print(transaction)
-#             else:
-#                 print(text)
 
 
 def all_transactions():

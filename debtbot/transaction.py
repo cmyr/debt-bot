@@ -34,12 +34,6 @@ class Transaction(object):
         if input_str:
             self.raw_text = input_str
             self.parse(self.raw_text)
-        # raw_transaction = self.parse(self.input_str)
-        # self.raw_transaction = self.componentize_transaction(
-        #     input_str,
-        #     [self.componentize1, self.componentize2]
-        # )
-        # self.parse_components(self.raw_transaction)
 
     def __repr__(self):
         msg = "debtor: {} creditor: {} value: {}".format(
@@ -55,14 +49,14 @@ class Transaction(object):
     def obligation_to_user(self, user):
         if user == self.debtor:
             return self.value, self.creditor
-        if user == self.credit:
+        if user == self.creditor:
             return 0 - self.value, self.debtor
         return 0, None
 
     def _matches(self, text):
         '''split for testing'''
         return re.search(
-            r'(?:<@([0-9A-Z]+)>.?\s*)(\S*)?(?:\s*<@([0-9A-Z]+)>)?(?:[^0-9\.]+)?([0-9\.]+)?',
+            r'(?:<?@([0-9A-Za-z]+)>?.?\s*)([-<>]+)?(?:\s*<?@([0-9A-Za-z]+)>?)?(?:[^0-9\.]+)?([0-9\.]+)?',
             text)
 
     def parse(self, text):
@@ -98,42 +92,9 @@ class Transaction(object):
                 'failed to parse value ({}) in text: {}'.format(
                     d, text))
 
-    # def componentize1(self, text):
-    #     parsed = re.search(
-    #         r'<@(\w+)>.?\s*(\S*)\s*<@(\w+)>\s+([^0-9\.]+)?([0-9\.]+)\$?(.*)',
-    #         text)
-    #     if parsed:
-    #         return RawTransaction(
-    #             parsed.group(1), parsed.group(2), parsed.group(3),
-    #             parsed.group(4), parsed.group(5))
-
-    # def componentize2(self, text):
-    #     parsed = re.search(r'@(\w+).?\s*(\S*)\s*(\w+)\s(.*?)([0-9\.]+)', text)
-    #     if parsed:
-    #         return RawTransaction(
-    #             parsed.group(1), parsed.group(2), parsed.group(3),
-    #             parsed.group(5), parsed.group(4))
-
-    # def parse_components(self, raw_transaction):
-    #     if raw_transaction:
-    #         if DEBUG:
-    #             print(raw_transaction)
-    #         operator = self.parse_operator(raw_transaction.operator)
-    #         if operator == TO_KEY:
-    #             self.debtor = raw_transaction.first_party
-    #             self.creditor = raw_transaction.second_party
-    #         elif operator == FROM_KEY:
-    #             self.debtor = raw_transaction.second_party
-    #             self.creditor = raw_transaction.first_party
-
-    #         self.operator = raw_transaction.operator
-    #         self.value = float(raw_transaction.value)
-    #         if raw_transaction.notes != "":
-    #             self.notes = raw_transaction.notes
-
     def parse_operator(self, operator_text):
-        credit = "&gt;" in operator_text
-        debit = "&lt;" in operator_text
+        credit = ">" in operator_text
+        debit = "<" in operator_text
 
         if credit == debit:
             return None
@@ -143,16 +104,16 @@ class Transaction(object):
 
 def test():
     tests = [
-        '<@U024H4SR1> -&gt; <@U024H5LFB> $15 (thai food)',
-        '<@U024H5KK7> -&gt; <@U024H5LFB> 20$',
-        '<@U024H5KK7> -&gt; <@U024H5LFB> $10 sandwich place',
-        '<@U024H5KK7> -&lt; <@U024H5LFB> $10 sandwich place',
-        '<@U024H4SR1> -&gt; <@U024H5LFB> $7',
-        '<@U024H4SR1> -&gt; 56 money!',
+        '<@U024H4SR1> -> <@U024H5LFB> $15 (thai food)',
+        '<@U024H5KK7> -> <@U024H5LFB> 20$',
+        '<@U024H5KK7> -> <@U024H5LFB> $10 sandwich place',
+        '<@U024H5KK7> -< <@U024H5LFB> $10 sandwich place',
+        '<@U024H4SR1> -> <@U024H5LFB> $7',
+        '<@U024H4SR1> -> 56 money!',
         '<@U024H4SR1|will> set the channel topic: trying to incur \
         more debt to make the debt-bot more exciting',
     ]
-    T = Transaction('<@U024H4SR1> -&gt; <@U024H5LFB> $15 (thai food)')
+    T = Transaction('<@U024H4SR1> -> <@U024H5LFB> $15 (thai food)')
     for t in tests:
         try:
             matches = T._matches(t)
