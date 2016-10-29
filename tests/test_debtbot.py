@@ -17,6 +17,12 @@ def test_transactions():
     assert len(result.splitlines()) > 10, 'this test is very fuzzy'
 
 
+def test_errors():
+    msg = {'text': 'debug', 'user_id': 'U024H4SR1'}
+    result = slask.handle_message(msg)
+    assert result is not None
+
+
 def test_calculation():
     transactions = [
         '@colin -> @will 20',

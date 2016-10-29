@@ -22,9 +22,10 @@ DEBT_CHANNEL_ID = 'C02CWS8H0'
 def help_message():
     return """
     Welcome to #debt! I respond to the following commands:
-    help: show this menu
-    status: show your debtors and creditors
-    transactions: show all of your transactions
+    `help`: show this menu
+    `status`: show your debtors and creditors
+    `transactions`: show all of your transactions
+    `debug`: print parse errors
 
     new transactions must be in the following format:
     (*user1*) (*operator*) *user2* (*value*) where:
@@ -67,12 +68,14 @@ def transactions(user_id):
     return messages
 
 
-def printable_transactions(user_id):
+def printable_transactions(user_id, only_errors=False):
     def stringify_transaction(t):
         try:
             t = Transaction(m.get('text'))
-            if t.parsed:
+            if t.parsed and not only_errors:
                 return m.get('text')
+            if t.parsed and only_errors:
+                return None
             else:
                 return 'SKIPPED ' + m.get('text')
         except TransactionParseError as err:
@@ -80,7 +83,8 @@ def printable_transactions(user_id):
                 m.get('text'), err)
 
     messages = transactions(user_id)
-    return [stringify_transaction(m.get('text')) for m in messages]
+    results = [stringify_transaction(m.get('text')) for m in messages]
+    return [r for r in results if r]
 
 
 def sum_obligations(messages, user_id):
