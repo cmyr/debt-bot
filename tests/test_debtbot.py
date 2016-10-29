@@ -36,3 +36,15 @@ def test_calculation():
     assert balances['will'] == -5
     assert balances['sparky'] == -5
     assert balances['stew'] == 2.5
+
+
+def test_validate_input():
+    message = {'channel_id': debt_utils.DEBT_CHANNEL_ID, 'text': '@colin -> @joe $4.20'}
+    result = slask.handle_message(message)
+    assert not result
+
+
+def test_validate_input_fail():
+    message = {'channel_id': debt_utils.DEBT_CHANNEL_ID, 'text': '@colin <-> @joe $4.20'}
+    result = slask.handle_message(message)
+    assert "error" in result

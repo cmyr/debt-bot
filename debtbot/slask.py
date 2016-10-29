@@ -5,12 +5,20 @@ from flask import Flask, request, jsonify
 
 
 from . import debt_utils
+from .transaction import Transaction, TransactionParseError
 from .config import config
 
 app = Flask(__name__)
 
 
 def handle_message(message):
+    if message.get('channel_id') == debt_utils.DEBT_CHANNEL_ID:
+        try:
+            valid_transaction = Transaction(message.get('text', ''))
+            return None
+        except TransactionParseError as err:
+            return 'error parsing message: `{}`'.format(err)
+
     # 'help'
     if re.findall(r"^help", message.get("text", ""), flags=re.IGNORECASE):
         return debt_utils.help_message()
