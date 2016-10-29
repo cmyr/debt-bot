@@ -6,12 +6,13 @@ import re
 from collections import defaultdict, namedtuple
 import operator
 import sys
+import urllib
 
 from slacker import Slacker
 from token import slack_token
 from aliases import DEBT_BOT_ALIASES
 
-from transaction import Transaction
+from transaction import Transaction, TransactionParseError
 slack = Slacker(slack_token)
 
 DEBT_CHANNEL_ID = 'C02CWS8H0'
@@ -60,6 +61,22 @@ def transactions(user_id):
     messages = get_channel_history(DEBT_CHANNEL_ID)
     messages = [m for m in messages if re.search(user_id, m.get('text', ''))]
     return messages
+
+
+def printable_transactions(user_id):
+    def stringify_transaction(t):
+        try:
+            t = Transaction(m.get('text'))
+            if t.parsed:
+                return m.get('text')
+            else:
+                return 'SKIPPED ' + m.get('text')
+        except TransactionParseError as err:
+            return '❌FAILED! {}\n error ({})'.format(
+                m.get('text'), err)
+
+    messages = transactions(user_id)
+    return [stringify_transaction(urllib.unquote(m.get('text'))) for m in messages]
 
 
 def status_for_user(user_id, show_unparsed=False):

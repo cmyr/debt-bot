@@ -4,7 +4,6 @@ import os
 import re
 import sys
 import traceback
-import urllib
 
 from flask import Flask, request, jsonify
 
@@ -28,8 +27,9 @@ def handle_message(message):
     if re.findall(r"^transactions", message.get("text", ""), flags=re.IGNORECASE):
         transactions = debt_utils.transactions(message.get("user_id"))
         if len(transactions):
-            return "\n".join([urllib.unquote(m.get("text", ""))
+            return "\n".join([(m.get("text", ""))
                               for m in transactions])
+
     return None
 
 
