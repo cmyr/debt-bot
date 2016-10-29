@@ -14,8 +14,7 @@ app = Flask(__name__)
 def handle_message(message):
     if message.get('channel_id') == debt_utils.DEBT_CHANNEL_ID:
         try:
-            valid_transaction = Transaction(message.get('text', ''))
-            return None
+            debt_utils.validate_message(message.get('text'))
         except TransactionParseError as err:
             return 'error parsing message: `{}`'.format(err)
 

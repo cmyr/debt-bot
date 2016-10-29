@@ -6,7 +6,6 @@ import re
 from collections import defaultdict, namedtuple
 import operator
 import sys
-# import urllib
 from HTMLParser import HTMLParser
 
 from slacker import Slacker
@@ -154,6 +153,13 @@ def all_transactions():
     all_messages = [m.get('text')
                     for m in get_channel_history(DEBT_CHANNEL_ID)]
     return [Transaction(p) for p in all_messages if p is not None]
+
+
+def validate_message(msg):
+    '''will toss an exception on validation fail'''
+    unescaped = HTMLParser().unescape(msg)
+    valid_transaction = Transaction(unescaped)
+    return True
 
 
 def main():

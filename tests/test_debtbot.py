@@ -39,12 +39,13 @@ def test_calculation():
 
 
 def test_validate_input():
-    message = {'channel_id': debt_utils.DEBT_CHANNEL_ID, 'text': '@colin -> @joe $4.20'}
+    message = {'channel_id': debt_utils.DEBT_CHANNEL_ID, 'text': '@colin -&gt; @joe $4.20'}
     result = slask.handle_message(message)
     assert not result
 
 
 def test_validate_input_fail():
-    message = {'channel_id': debt_utils.DEBT_CHANNEL_ID, 'text': '@colin <-> @joe $4.20'}
+    message = {'channel_id': debt_utils.DEBT_CHANNEL_ID, 'text': '@colin &lt;-&gt; @joe $4.20'}
     result = slask.handle_message(message)
+    assert result
     assert "error" in result

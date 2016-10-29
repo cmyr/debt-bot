@@ -85,5 +85,3 @@ def test_names():
     assert t.debtor == 'colin'
     assert t.creditor == 'will'
     assert t.value == 35
-
-
