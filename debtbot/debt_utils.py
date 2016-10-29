@@ -79,7 +79,7 @@ def printable_transactions(user_id, only_errors=False):
             else:
                 return 'SKIPPED ' + m.get('text')
         except TransactionParseError as err:
-            return '❌FAILED! {}\n error ({})'.format(
+            return '❌FAILED! {}\n error: `{}`'.format(
                 m.get('text'), err)
 
     messages = transactions(user_id)
