@@ -9,7 +9,7 @@ import sys
 import urllib
 
 from slacker import Slacker
-from token import slack_token
+from slack_token import slack_token
 from aliases import DEBT_BOT_ALIASES
 
 from transaction import Transaction, TransactionParseError

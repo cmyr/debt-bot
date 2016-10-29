@@ -1,19 +1,13 @@
-from glob import glob
-import importlib
-import os
 import re
-import sys
 import traceback
 
 from flask import Flask, request, jsonify
 
+
+from . import debt_utils
+from .config import config
+
 app = Flask(__name__)
-
-curdir = os.path.dirname(os.path.abspath(__file__))
-os.chdir(curdir)
-
-import debt_utils
-from config import config
 
 
 def handle_message(message):
@@ -46,7 +40,7 @@ def main():
     try:
         text = handle_message(request.form)
     except Exception as err:
-        text = str(err)
+        text = str(msg.form) + traceback.format_exc()
 
     if not text:
         return ""
