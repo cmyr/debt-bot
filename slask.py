@@ -25,10 +25,9 @@ def handle_message(message):
         return debt_utils.status_for_user(message.get("user_id"))
     # 'transactions'
     if re.findall(r"^transactions", message.get("text", ""), flags=re.IGNORECASE):
-        transactions = debt_utils.transactions(message.get("user_id"))
+        transactions = debt_utils.printable_transactions(message.get("user_id"))
         if len(transactions):
-            return "\n".join([(m.get("text", ""))
-                              for m in transactions])
+            return "\n".join(transactions)
 
     return None
 
