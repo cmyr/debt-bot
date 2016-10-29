@@ -10,10 +10,6 @@ DEBUG = False
 FROM_KEY = "from"
 TO_KEY = "to"
 
-# RawTransaction = namedtuple(
-#     "Transaction",
-#     ["first_party", "operator", "second_party", "value", "notes"])
-
 
 class TransactionParseError(Exception):
     pass
@@ -35,8 +31,9 @@ class Transaction(object):
 
     def __init__(self, input_str):
         super(Transaction, self).__init__()
-        self.raw_text = input_str
-        self.parse(self.raw_text)
+        if input_str:
+            self.raw_text = input_str
+            self.parse(self.raw_text)
         # raw_transaction = self.parse(self.input_str)
         # self.raw_transaction = self.componentize_transaction(
         #     input_str,
@@ -56,21 +53,11 @@ class Transaction(object):
         return msg
 
     def obligation_to_user(self, user):
-        if user == self.creditor:
-            return self.value, self.debtor
         if user == self.debtor:
-            return 0 - self.value, self.creditor
+            return self.value, self.creditor
+        if user == self.credit:
+            return 0 - self.value, self.debtor
         return 0, None
-
-    # def componentize_transaction(self, text, funcs):
-    #     subbed = re.sub(r'<@(\w+)>', r'@\1 ', text)
-    #     if DEBUG:
-    #         print(text)
-    #         print(subbed)
-    #     for f in funcs:
-    #         result = f(subbed)
-    #         if result:
-    #             return result
 
     def _matches(self, text):
         '''split for testing'''
@@ -102,8 +89,8 @@ class Transaction(object):
                 'Illegal operator ({}) in text {}'.format(
                     b, text))
 
-        self.debtor = a if self.operator == TO_KEY else c
-        self.creditor = c if self.operator == TO_KEY else a
+        self.debtor = c if self.operator == TO_KEY else a
+        self.creditor = a if self.operator == TO_KEY else c
         try:
             self.value = float(d)
         except ValueError:
