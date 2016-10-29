@@ -97,7 +97,7 @@ def status_for_user(user_id, show_unparsed=False):
             errors.append((err, m))
             # return "exception %s handling message %s" % (err, m)
 
-    response = response_for_balances(balances, user_list)
+    response = response_for_balances(balances, user_list, user_id)
     if show_unparsed and len(unparsed):
         response += "\n" + \
             "\n".join(["unabled to parse message: %s" % m for m in unparsed]) + "\n" + \
@@ -110,7 +110,7 @@ def status_for_user(user_id, show_unparsed=False):
     return preamble + response
 
 
-def response_for_balances(balances, user_list):
+def response_for_balances(balances, user_list, user_id):
     responses = list()
     response_str = ""
     for other_user_id, value in reversed(sorted(
